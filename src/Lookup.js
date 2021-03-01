@@ -7,7 +7,6 @@ const async = require('async');
 const rr = require('rr');
 
 const AddressCache = require('./AddressCache');
-const TasksManager = require('./TasksManager');
 const ResolveTask = require('./ResolveTask');
 
 class Lookup {
@@ -34,7 +33,6 @@ class Lookup {
 
     constructor() {
         this._addressCache = new AddressCache();
-        this._tasksManager = new TasksManager();
 
         this._amountOfResolveTries = {};
     }
@@ -197,26 +195,14 @@ class Lookup {
             return;
         }
 
-        let task = this._tasksManager.find(key);
+        const task = new ResolveTask(hostname, ipVersion);
 
-        if (task) {
-            task.addResolvedCallback(callback);
-        } else {
-            task = new ResolveTask(hostname, ipVersion);
+        task.on('addresses', addresses => {
+            this._addressCache.set(key, addresses);
+        });
 
-            this._tasksManager.add(key, task);
-
-            task.on('addresses', addresses => {
-                this._addressCache.set(key, addresses);
-            });
-
-            task.on('done', () => {
-                this._tasksManager.done(key);
-            });
-
-            task.addResolvedCallback(callback);
-            task.run();
-        }
+        task.addResolvedCallback(callback);
+        task.run();
     }
 
     /**

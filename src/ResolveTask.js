@@ -70,7 +70,6 @@ class ResolveTask extends EventEmitter {
      * @param {Error} error
      * @param {Address[]} addresses
      * @emits ResolveTask#addresses array of addresses
-     * @emits ResolveTask#done notification about completion
      * @private
      */
     _resolved(error, addresses) {
@@ -92,8 +91,6 @@ class ResolveTask extends EventEmitter {
         });
 
         this._callbacks = [];
-
-        this.emit('done');
     }
 }
 
